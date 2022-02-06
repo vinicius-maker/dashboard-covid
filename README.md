@@ -1,4 +1,4 @@
-# Projeto Catálogo (https://api.covid19api.com/)
+# Projeto Dashboard Covid-19 (https://api.covid19api.com/)
 
 > Projeto de um Dashboard com elementos gráficos apresentando os números da Covid-19.
 
