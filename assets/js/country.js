@@ -90,7 +90,7 @@ function getFilter() {
                     // console.log("mortes diarias: " + mortesDiarias);
                     // console.log("medias: " + mediaMortesDiarias);      
 
-                    totalDeaths += valor.Deaths;
+                    // totalDeaths += valor.Deaths;
                     recovered += valor.Recovered;
                     confirmed += valor.Confirmed;
                 });
@@ -99,11 +99,15 @@ function getFilter() {
                     if (index > 0) {
                         getDeathDailyArray = valor.Deaths - arr[index - 1].Deaths;
                         console.log("cheguei no if, valor", getDeathDailyArray);
-                    }
 
+                        totalDeaths += getDeathDailyArray;
+
+                        console.log("mortes totais", totalDeaths);
+
+                    }
                 })
                 //Recuperação da média de mortes
-                avgDailyDeathArray = getDeathDailyArray / totalDays;
+                avgDailyDeathArray = totalDeaths / totalDays;
 
                 console.log("média corrigido", avgDailyDeathArray);
 
