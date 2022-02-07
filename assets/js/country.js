@@ -10,13 +10,17 @@ fetch("https://api.covid19api.com/countries")
 
 function getCountries(arrayCountries) {
 
-    const Countries = arrayCountries.map(function (nameCountry) {
+    const countries = arrayCountries.map(function (nameCountry) {
         return nameCountry.Country;
     })
 
-    let select = Countries.map(arrayCountry => {
+    let sortedCountries = countries.sort((a,b)=> a > b? 1 : -1)
 
+    let select = sortedCountries.map(arrayCountry => {
+        if(arrayCountry == "Brazil")
+            return item = `<option selected value="${arrayCountry}">${arrayCountry}</option>`;
         return item = `<option value="${arrayCountry}">${arrayCountry}</option>`;
+
 
     });
     return select.join("");
