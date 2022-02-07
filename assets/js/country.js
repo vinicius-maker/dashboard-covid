@@ -8,17 +8,24 @@ fetch("https://api.covid19api.com/countries")
         document.getElementById("cmbCountry").innerHTML = country;
     });
 
-function getCountries(arrayCountries) {
+    function getCountries(arrayCountries) {
 
-    const Countries = arrayCountries.map(function (nameCountry) {
-        return nameCountry.Country;
-    })
-
-    let select = Countries.map(arrayCountry => {
-        return item = `<option value="${arrayCountry}">${arrayCountry}</option>`;
-    });
-    return select.join("");
-}
+        const countries = arrayCountries.map(function (nameCountry) {
+            return nameCountry.Country;
+        })
+    
+        let sortedCountries = countries.sort((a,b)=> a > b? 1 : -1)
+    
+        let select = sortedCountries.map(arrayCountry => {
+            if(arrayCountry == "Brazil")
+                return item = `<option selected value="${arrayCountry}">${arrayCountry}</option>`;
+            return item = `<option value="${arrayCountry}">${arrayCountry}</option>`;
+    
+    
+        });
+        return select.join("");
+    }
+    
 
 // function addListeners(){
 
@@ -84,7 +91,7 @@ function getFilter() {
                     // console.log("mortes diarias: " + mortesDiarias);
                     // console.log("medias: " + mediaMortesDiarias);      
 
-                    totalDeaths += valor.Deaths;
+                    // totalDeaths += valor.Deaths;
                     recovered += valor.Recovered;
                     confirmed += valor.Confirmed;
                 });
@@ -93,11 +100,15 @@ function getFilter() {
                     if (index > 0) {
                         getDeathDailyArray = valor.Deaths - arr[index - 1].Deaths;
                         console.log("cheguei no if, valor", getDeathDailyArray);
-                    }
 
+                        totalDeaths += getDeathDailyArray;
+
+                        console.log("mortes totais", totalDeaths);
+
+                    }
                 })
                 //Recuperação da média de mortes
-                avgDailyDeathArray = getDeathDailyArray / totalDays;
+                avgDailyDeathArray = totalDeaths / totalDays;
 
                 console.log("média corrigido", avgDailyDeathArray);
 
