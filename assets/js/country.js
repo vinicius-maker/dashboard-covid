@@ -78,6 +78,8 @@ function getFilter() {
 
                 let getDeathDailyArray = [];
 
+                let totalDaily = 0;
+
                 data.data.forEach((valor, index) => {
                     // if (index == 0) {
                     //     mortesDiarias = valor.Deaths;
@@ -104,13 +106,15 @@ function getFilter() {
                         //valores exatos de quantidade de mortes por dia
                         totalDeaths = getDeathDailyArray;
 
+                        // getDeathDailyArray.push(valor.Deaths - arr[index - 1].Deaths);
+                        // console.log("cheguei no if, valor", getDeathDailyArray);
                         
                         // média de valores diários
                         meanTotalDeaths += getDeathDailyArray;
                         
-                        console.log("mortes totais", totalDeaths);
+                        console.log("mortes totais", meanTotalDeaths);
 
-                        avgDailyDeathArray.push(2500);
+                        avgDailyDeathArray.push(meanTotalDeaths / totalDays);
                     }
                 })
                 //Recuperação da média de mortes
