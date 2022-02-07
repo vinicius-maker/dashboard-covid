@@ -98,4 +98,13 @@ function getGraficoBarra(data) {
     })  
 }
 
+function addListeners(){
+    document.querySelectorAll('.app-menu').forEach(item =>{
+        item.addEventListener('click', function(event){
+            Array.from(document.querySelectorAll('.nav-item.active')).forEach((el) => el.classList.remove('active'));
+            this.parentElement.classList.add('active');
+            covid[event.target.dataset.modulo].start();       
+        });
+    });
+}
 
