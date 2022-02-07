@@ -47,6 +47,7 @@ function getFilter() {
         // configuração para pegar a data anterior ao que o usuário setou
         dateFrom.setDate(dateFrom.getDate() - 1);
         dateFrom = dateFrom.toISOString().split('T')[0];
+        dateTo = dateTo.toISOString().split('T')[0];
 
         console.log("TESTE DE DATA ", dateFrom);
 
@@ -54,7 +55,7 @@ function getFilter() {
         axios.get(`https://api.covid19api.com/country/${country}?from=${dateFrom}T00:00:00Z&to=${dateTo}T00:00:00Z`)
             .then(function (data) {
 
-                // console.log(data);
+                console.log(data);
 
                 let totalDeaths = 0;
                 let recovered = 0;
