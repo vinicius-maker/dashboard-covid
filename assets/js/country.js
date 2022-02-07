@@ -131,6 +131,8 @@ function getGraficoLinhas(dataAPI, totalDays, totalDeaths, avgDailyDeathArray, g
     let totalMortes = [];
     let mediaDiaria = [];
 
+    console.log("Vamos plotar " + avgDailyDeathArray + " " + getDeathDailyArray)
+
     new Chart(document.getElementById("linhas"), {
         type: 'line',
         data: {
