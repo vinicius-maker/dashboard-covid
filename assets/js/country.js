@@ -38,16 +38,18 @@ function getFilter() {
         let country = document.getElementById("cmbCountry").value;
         let dateFrom = document.getElementById("date_start").valueAsDate;
         let dateTo = document.getElementById("date_end").valueAsDate;
-        // let newDateFrom = new Date(dateFrom);
-        // console.log("teste data " + newDateFrom);
 
-        // let totalDays = Math.abs(new Date(dateFrom.split("T")[0]) - new Date(dateTo.split("T")[0])) / 1000 / 60 / 60 / 24;
+        let totalDays = Math.abs(dateTo) - (dateFrom.setDate(dateFrom.getDate() - 1));
 
+        totalDays = totalDays / 1000 / 60 / 60 / 24;
+
+        dateFrom.setDate(dateFrom.getDate() + 1);
 
         // configuração para pegar a data anterior ao que o usuário setou
         dateFrom.setDate(dateFrom.getDate() - 1);
         dateFrom = dateFrom.toISOString().split('T')[0];
         dateTo = dateTo.toISOString().split('T')[0];
+
 
         console.log("TESTE DE DATA ", dateFrom);
 
@@ -60,13 +62,14 @@ function getFilter() {
                 let totalDeaths = 0;
                 let recovered = 0;
                 let confirmed = 0;
-                // let mortesDiarias = 0;
-                // let mediaMortesDiarias = 0;
+                let mortesDiarias = 0;
+                let mediaMortesDiarias = 0;
                 let mortesDiariasArray = [];
                 let mediaDiariasArray = [];
 
-                let avgDailyDeath = 0;
-                let avgDailyDeathArray = [];
+                let avgDailyDeathArray = 0;
+
+                let getDeathDailyArray = [];
 
                 data.data.forEach((valor, index) => {
                     // if (index == 0) {
@@ -79,18 +82,24 @@ function getFilter() {
                     // }
 
                     // console.log("mortes diarias: " + mortesDiarias);
-                    // console.log("medias: " + mediaMortesDiarias);
-
-
+                    // console.log("medias: " + mediaMortesDiarias);      
 
                     totalDeaths += valor.Deaths;
                     recovered += valor.Recovered;
                     confirmed += valor.Confirmed;
+                });
 
-                    avgDailyDeathArray = totalDeaths / totalDays;
+                data.data.forEach(function (valor, index, arr) {
+                    if (index > 0) {
+                        getDeathDailyArray = valor.Deaths - arr[index - 1].Deaths;
+                        console.log("cheguei no if, valor", getDeathDailyArray);
+                    }
 
-                    console.log("Media total de mortes", avgDailyDeathArray);
                 })
+                //Recuperação da média de mortes
+                avgDailyDeathArray = getDeathDailyArray / totalDays;
+
+                console.log("média corrigido", avgDailyDeathArray);
 
                 let totalConfirmados = document.getElementById("kpiconfirmed");
                 let totalMortes = document.getElementById("kpideaths");
@@ -99,7 +108,7 @@ function getFilter() {
                 totalMortes.innerHTML = totalDeaths;
                 totalRecuperados.innerHTML = recovered;
 
-                getGraficoLinhas(data.data, totalDias, totalDeaths, mediaDiariasArray, mortesDiariasArray)
+                getGraficoLinhas(data.data, totalDays, totalDeaths, avgDailyDeathArray, getDeathDailyArray)
 
             })
     })
@@ -107,23 +116,10 @@ function getFilter() {
 }
 getFilter();
 
-function getGraficoLinhas(data, totalDias, totalDeaths, mediaDiariasArray, mortesDiariasArray) {
+function getGraficoLinhas(dataAPI, totalDays, totalDeaths, avgDailyDeathArray, getDeathDailyArray) {
     let dataLabels = []
     let totalMortes = [];
     let mediaDiaria = [];
-    console.log(totalDeaths);
-    data.forEach((valor) => {
-        console.log(valor);
-        dataLabels.push(valor.Date.replace('T00:00:00Z', ''));
-        totalMortes.push(valor.Deaths)
-        mediaDiaria.push(totalDeaths / totalDias)
-    });
-
-    //let mediaMortes = totalMortes / totalDias;
-    console.log("Total de mortes " + totalMortes);
-    console.log("Media de mortes " + mediaDiaria);
-
-
 
     new Chart(document.getElementById("linhas"), {
         type: 'line',
@@ -143,13 +139,13 @@ function getGraficoLinhas(data, totalDias, totalDeaths, mediaDiariasArray, morte
                     backgroundColor: "rgb(60,186,159,0.1)"
                 },*/
                 {
-                    data: mortesDiariasArray,
+                    data: [getDeathDailyArray],
                     label: "Numero de Obitos",
                     borderColor: "rgb(255,140,13)",
                     backgroundColor: "rgb(255,140,13,0.1)"
                 },
                 {
-                    data: mediaDiariasArray,
+                    data: [avgDailyDeathArray],
                     label: "Media de Obitos",
                     borderColor: "rgb(60,186,159)",
                     backgroundColor: "rgb(60,186,159,0.1)"
@@ -180,4 +176,3 @@ function getGraficoLinhas(data, totalDias, totalDeaths, mediaDiariasArray, morte
         }
     })
 }
-getGraficoLinhas()
