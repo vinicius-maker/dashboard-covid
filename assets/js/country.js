@@ -14,7 +14,6 @@ function getCountries(arrayCountries) {
         return nameCountry.Country;
     })
 
-<<<<<<< HEAD
     let sortedCountries = countries.sort((a,b)=> a > b? 1 : -1)
 
     let select = sortedCountries.map(arrayCountry => {
@@ -23,10 +22,6 @@ function getCountries(arrayCountries) {
         return item = `<option value="${arrayCountry}">${arrayCountry}</option>`;
 
 
-=======
-    let select = Countries.map(arrayCountry => {
-        return item = `<option value="${arrayCountry}">${arrayCountry}</option>`;
->>>>>>> origin/subtracao-dias
     });
     return select.join("");
 }
