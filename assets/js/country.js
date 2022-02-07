@@ -8,24 +8,22 @@ fetch("https://api.covid19api.com/countries")
         document.getElementById("cmbCountry").innerHTML = country;
     });
 
-    function getCountries(arrayCountries) {
+function getCountries(arrayCountries) {
 
-        const countries = arrayCountries.map(function (nameCountry) {
-            return nameCountry.Country;
-        })
-    
-        let sortedCountries = countries.sort((a,b)=> a > b? 1 : -1)
-    
-        let select = sortedCountries.map(arrayCountry => {
-            if(arrayCountry == "Brazil")
-                return item = `<option selected value="${arrayCountry}">${arrayCountry}</option>`;
-            return item = `<option value="${arrayCountry}">${arrayCountry}</option>`;
-    
-    
-        });
-        return select.join("");
-    }
-    
+    const countries = arrayCountries.map(function (nameCountry) {
+        return nameCountry.Country;
+    })
+
+    let sortedCountries = countries.sort((a, b) => a > b ? 1 : -1)
+
+    let select = sortedCountries.map(arrayCountry => {
+        if (arrayCountry == "Brazil")
+            return item = `<option selected value="${arrayCountry}">${arrayCountry}</option>`;
+        return item = `<option value="${arrayCountry}">${arrayCountry}</option>`;
+    });
+    return select.join("");
+}
+
 
 // function addListeners(){
 
@@ -74,7 +72,9 @@ function getFilter() {
                 let mortesDiariasArray = [];
                 let mediaDiariasArray = [];
 
-                let avgDailyDeathArray = 0;
+                let meanTotalDeaths = 0;
+
+                let avgDailyDeathArray = [];
 
                 let getDeathDailyArray = [];
 
@@ -98,17 +98,22 @@ function getFilter() {
 
                 data.data.forEach(function (valor, index, arr) {
                     if (index > 0) {
-                        getDeathDailyArray = valor.Deaths - arr[index - 1].Deaths;
+                        getDeathDailyArray.push(valor.Deaths - arr[index - 1].Deaths);
                         console.log("cheguei no if, valor", getDeathDailyArray);
 
-                        totalDeaths += getDeathDailyArray;
+                        //valores exatos de quantidade de mortes por dia
+                        totalDeaths = getDeathDailyArray;
 
+                        
+                        // média de valores diários
+                        meanTotalDeaths += getDeathDailyArray;
+                        
                         console.log("mortes totais", totalDeaths);
 
+                        avgDailyDeathArray.push(2500);
                     }
                 })
                 //Recuperação da média de mortes
-                avgDailyDeathArray = totalDeaths / totalDays;
 
                 console.log("média corrigido", avgDailyDeathArray);
 
@@ -119,7 +124,7 @@ function getFilter() {
                 totalMortes.innerHTML = totalDeaths;
                 totalRecuperados.innerHTML = recovered;
 
-                getGraficoLinhas(data.data, totalDays, totalDeaths, avgDailyDeathArray, getDeathDailyArray)
+                getGraficoLinhas(data.data, totalDays, totalDeaths, avgDailyDeathArray, getDeathDailyArray);
 
             })
     })
@@ -127,10 +132,21 @@ function getFilter() {
 }
 getFilter();
 
-function getGraficoLinhas(dataAPI, totalDays, totalDeaths, avgDailyDeathArray, getDeathDailyArray) {
+function getGraficoLinhas(data, totalDays, totalDeaths, avgDailyDeathArray, getDeathDailyArray) {
     let dataLabels = []
     let totalMortes = [];
     let mediaDiaria = [];
+
+    console.log(getDeathDailyArray);
+
+    data.forEach((valor) => {
+        console.log(valor);
+        dataLabels.push(valor.Date.replace('T00:00:00Z',''));
+        totalMortes.push(totalDeaths)
+        mediaDiaria.push(avgDailyDeathArray)
+    });
+
+    console.log("media aqui", getDeathDailyArray);
 
     new Chart(document.getElementById("linhas"), {
         type: 'line',
@@ -150,13 +166,13 @@ function getGraficoLinhas(dataAPI, totalDays, totalDeaths, avgDailyDeathArray, g
                     backgroundColor: "rgb(60,186,159,0.1)"
                 },*/
                 {
-                    data: [getDeathDailyArray],
+                    data: getDeathDailyArray,
                     label: "Numero de Obitos",
                     borderColor: "rgb(255,140,13)",
                     backgroundColor: "rgb(255,140,13,0.1)"
                 },
                 {
-                    data: [avgDailyDeathArray],
+                    data: avgDailyDeathArray,
                     label: "Media de Obitos",
                     borderColor: "rgb(60,186,159)",
                     backgroundColor: "rgb(60,186,159,0.1)"
