@@ -7,7 +7,7 @@ await getCountriesRoute().then(function (data) {
 });
 
 function getCountries(arrayCountries) {
-    const countries = arrayCountries.map(function (nameCountry) {
+    const countries = arrayCountries.map((nameCountry) => {
         return nameCountry.Country;
     });
 
@@ -35,6 +35,7 @@ function getArrayOfAvg(arrToAvg, totalDays) {
 
     return arrTotalDaylies;
 }
+
 
 function getFilter() {
     let button = document.getElementById("filtro");
@@ -104,10 +105,7 @@ function getChartLinhas(option, data, averageArray, totalArray) {
     let dataLabels = [];
 
     data.forEach((valor) => {
-        console.log(valor);
-        dataLabels.push(valor.Date.replace('T00:00:00Z',''));
-        totalMortes.push(valor.Deaths)
-        mediaDiaria.push(deaths / totalDias)
+        dataLabels.push(valor.Date.replace('T00:00:00Z',''));  
     });
 
     dataLabels = dataLabels.slice(1, dataLabels.length);
@@ -135,7 +133,7 @@ function getChartLinhas(option, data, averageArray, totalArray) {
                 }
             ]
         },
-        options:{
+        options: {
             responsive: true,
             plugins: {
                 legend: {
@@ -147,7 +145,7 @@ function getChartLinhas(option, data, averageArray, totalArray) {
                     text: "Curva diaria de Covid-19"
                 },
                 layout: {
-                    padding:{
+                    padding: {
                         left: 100,
                         right: 100,
                         top: 50,
