@@ -43,6 +43,22 @@ function getDeathsAvg(arrDeaths, totalDays) {
 
 }
 
+function getConfirmedsAvg(arrConfirmeds, totalDays) {
+
+    let totalDayliesConfirmeds = 0;
+    let arrTotalDayliesConfirmeds= [];
+
+    arrConfirmeds.forEach((value)=>{
+        totalDayliesConfirmeds += value;
+    })
+
+    for (let i = 0 ; i < arrConfirmeds.length; i++) {
+        arrTotalDayliesConfirmeds.push(totalDayliesConfirmeds / totalDays )
+    }
+    return arrTotalDayliesConfirmeds;    
+
+}
+
 function getFilter() {
     let button = document.getElementById("filtro");
 
@@ -69,9 +85,10 @@ function getFilter() {
                 let totalDeaths = 0;
                 let recovered = 0;
                 let confirmed = 0;
-                let meanTotalDeaths = 0;
                 let avgDailyDeathArray = [];
                 let deathDailyArray = [];
+                let confirmedDailyArray = [];
+                let avgDailyConfirmedArray = [];
 
                 console.log("Tamanho do retorno " + data.data.length)
 
@@ -84,6 +101,8 @@ function getFilter() {
                 data.data.forEach(function (valor, index, arr) {
                     if (index > 0) {
                         deathDailyArray.push(valor.Deaths - arr[index - 1].Deaths);
+                        confirmedDailyArray.push(valor.Confirmed - arr[index - 1].Confirmed);
+
                    }
                 })
                 //Recuperação da média de mortes
@@ -98,8 +117,9 @@ function getFilter() {
                 totalRecuperados.innerHTML = recovered;
 
                 avgDailyDeathArray = getDeathsAvg(deathDailyArray, totalDays);
+                avgDailyConfirmedArray = getConfirmedsAvg(confirmedDailyArray, totalDays);
 
-                getGraficoLinhas(data.data, totalDays, totalDeaths, avgDailyDeathArray, deathDailyArray);
+                getGraficoLinhas(data.data, totalDays, totalDeaths, avgDailyDeathArray, deathDailyArray, confirmedDailyArray, avgDailyConfirmedArray);
 
             })
     })
@@ -120,6 +140,8 @@ function getGraficoLinhas(data, totalDays, totalDeaths, avgDailyDeathArray, getD
         totalMortes.push(totalDeaths)
         mediaDiaria.push(avgDailyDeathArray)
     });
+
+    dataLabels = dataLabels.slice(1, dataLabels.length )
 
     new Chart(document.getElementById("linhas"), {
         type: 'line',
