@@ -1,101 +1,108 @@
-fetch("https://api.covid19api.com/countries")
-    .then((resp) => {
-        return resp.json();
-    })
-    .then(function (data) {
-        let country = getCountries(data);
+import { getCountriesRoute, numberWithCommas } from '../services/functions.js'
+let chart = null;
 
-        document.getElementById("cmbCountry").innerHTML = country;
-    });
+await getCountriesRoute().then(function (data) {
+    let country = getCountries(data);
+    document.getElementById("cmbCountry").innerHTML = country;
+});
 
 function getCountries(arrayCountries) {
-
-    const Countries = arrayCountries.map(function (nameCountry) {
+    const countries = arrayCountries.map(function (nameCountry) {
         return nameCountry.Country;
+    });
+
+    let sortedCountries = countries.sort((a, b) => a > b ? 1 : -1);
+
+    let selectCountrie = sortedCountries.map(arrayCountry => {
+        if (arrayCountry == "Brazil")
+            return `<option selected value="${arrayCountry}">${arrayCountry}</option>`;
+        return `<option value="${arrayCountry}">${arrayCountry}</option>`;
+    });
+    return selectCountrie.join("");
+}
+
+function getArrayOfAvg(arrToAvg, totalDays) {
+    let totalDaylies = 0;
+    let arrTotalDaylies = [];
+
+    arrToAvg.forEach((value)=>{
+        totalDaylies += value;
     })
 
-    let select = Countries.map(arrayCountry => {
+    for (let i = 0 ; i < arrToAvg.length; i++) {
+        arrTotalDaylies.push(totalDaylies / totalDays);
+    }
 
-        return item = `<option value="${arrayCountry}">${arrayCountry}</option>`;
-
-    });
-    return select.join("");
+    return arrTotalDaylies;
 }
-
-function addListeners(){
-
-let item = document.getElementById('filtro')
-    item.addEventListener('click', function(event){
-        Array.from(document.getElementById('filtro')).forEach((el) => el.classList.remove('active'));
-        this.parentElement.classList.add('active');
-        covid[event.target.dataset.modulo].start();       
-    });
-}
-//addListeners();
 
 function getFilter() {
     let button = document.getElementById("filtro");
 
-    button.addEventListener("click", (evt) => {
+    button.addEventListener("click", () => {
         let country = document.getElementById("cmbCountry").value;
-        let dateFrom = document.getElementById("date_start").value;
-        let dateTo = document.getElementById("date_end").value;
-        let newDateFrom = new Date(dateFrom)
-        console.log("teste data " + newDateFrom);
+        let dateFrom = document.getElementById("date_start").valueAsDate;
+        let dateTo = document.getElementById("date_end").valueAsDate;
+        let totalDays = Math.abs(dateTo) - (dateFrom.setDate(dateFrom.getDate() - 1));
+        
+        totalDays = totalDays / 1000 / 60 / 60 / 24;
+        dateFrom.setDate(dateFrom.getDate() + 1);
+        dateFrom.setDate(dateFrom.getDate() - 1);
+        dateFrom = dateFrom.toISOString().split('T')[0];
+        dateTo = dateTo.toISOString().split('T')[0];
 
-        let totalDias = Math.abs(new Date(dateFrom.split("T")[0]) - new Date(dateTo.split("T")[0])) / 1000 / 60 / 60 / 24;
+        axios.get(`https://api.covid19api.com/country/${country}?from=${dateFrom}T00:00:00Z&to=${dateTo}T00:00:00Z`).then((data) => {
+            let totalDeaths = 0;
+            let recovered = 0;
+            let confirmed = 0;
+            let avgDailyArray = [];
+            let deathDailyArray = [];
+            let confirmedDailyArray = [];
+            let recoveredDailyArray = [];
 
-        //console.log("TESTE DE DATA " + totalDias);
+            totalDeaths += data.data.slice(-1)[0].Deaths;
+            recovered += data.data.slice(-1)[0].Recovered;
+            confirmed += data.data.slice(-1)[0].Confirmed;
 
+            data.data.forEach(function (valor, index, arr) {
+                if (index > 0) {
+                    deathDailyArray.push(valor.Deaths - arr[index - 1].Deaths);
+                    confirmedDailyArray.push(valor.Confirmed - arr[index - 1].Confirmed);
+                    recoveredDailyArray.push(valor.Recovered - arr[index - 1].Recovered);
+               }
+            });
 
-        axios.get(`https://api.covid19api.com/country/${country}?from=${dateFrom}T00:00:00Z&to=${dateTo}T00:00:00Z`)
-            .then(function (data) {
-                let deaths = 0;
-                let recovered = 0;
-                let confirmed= 0; 
-                let mortesDiarias = 0;
-                let mediaMortesDiarias = 0;
-                let mortesDiariasArray = [];
-                let mediaDiariasArray = [];
-                
-                data.data.forEach((valor, index) => {
-                if (index == 0) {
-                    mortesDiarias = valor.Deaths;
-                } else {
-                    mortesDiarias += valor.Deaths - data.data[index -1].Deaths;
-                    mediaMortesDiarias = mortesDiarias / index;
-                    mortesDiariasArray.push(mortesDiarias);
-                    mediaDiariasArray.push(mediaMortesDiarias);
-                }
+            let totalConfirmados = document.getElementById("kpiconfirmed");
+            let totalMortes = document.getElementById("kpideaths");
+            let totalRecuperados = document.getElementById("kpirecovered");
 
-                console.log("mortes diarias: " + mortesDiarias);
-                console.log("medias: " + mortesDiarias);
-                
-                deaths += valor.Deaths
-                recovered += valor.Recovered
-                confirmed += valor.Confirmed
-                })
-
-                let totalConfirmados = document.getElementById("kpiconfirmed");
-                let totalMortes = document.getElementById("kpideaths");
-                let totalRecuperados = document.getElementById("kpirecovered");
-                totalConfirmados.innerHTML = confirmed
-                totalMortes.innerHTML = deaths
-                totalRecuperados.innerHTML = recovered
-
-                getGraficoLinhas(data.data, totalDias, deaths, mediaDiariasArray, mortesDiariasArray)
-
-            })
-    })
-
+            totalConfirmados.innerHTML = numberWithCommas(confirmed);
+            totalMortes.innerHTML = numberWithCommas(totalDeaths);
+            totalRecuperados.innerHTML = numberWithCommas(recovered);
+            
+            let option = document.getElementById("cmbData");
+            switch (option.value) {
+                case "Deaths":
+                    avgDailyArray = getArrayOfAvg(deathDailyArray, totalDays);
+                    getChartLinhas("Deaths",data.data, avgDailyArray, deathDailyArray);
+                break;
+                case "Confirmed":
+                    avgDailyArray = getArrayOfAvg(confirmedDailyArray, totalDays);
+                    getChartLinhas("Confirmed",data.data, avgDailyArray, confirmedDailyArray);
+                break;
+                case "Recovered":
+                    avgDailyArray = getArrayOfAvg(recoveredDailyArray, totalDays);
+                    getChartLinhas("Recovered",data.data, avgDailyArray, recoveredDailyArray);
+                break;            
+            }
+        });
+    });
 }
 getFilter();
 
-function getGraficoLinhas(data, totalDias, deaths, mediaDiariasArray, mortesDiariasArray) {
-    let dataLabels = []
-    let totalMortes = [];
-    let mediaDiaria = [];
-    console.log(deaths);
+function getChartLinhas(option, data, averageArray, totalArray) {
+    let dataLabels = [];
+
     data.forEach((valor) => {
         console.log(valor);
         dataLabels.push(valor.Date.replace('T00:00:00Z',''));
@@ -103,38 +110,26 @@ function getGraficoLinhas(data, totalDias, deaths, mediaDiariasArray, mortesDiar
         mediaDiaria.push(deaths / totalDias)
     });
 
-    //let mediaMortes = totalMortes / totalDias;
-    console.log("Total de mortes " + totalMortes);
-    console.log("Media de mortes " + mediaDiaria);
+    dataLabels = dataLabels.slice(1, dataLabels.length);
 
+    if(chart) {
+        chart.destroy();
+    }
 
-
-    new Chart(document.getElementById("linhas"),{
+    chart = new Chart(document.getElementById("linhas"), {
         type: 'line',
         data: {
             labels: dataLabels,
             datasets: [
-                /*{
-                    data: [1123, 1109, 1008, 1208, 1423, 1114, 1036],
-                    label: "Casos Confirmados",
-                    borderColor: "rgb(60,186,159)",
-                    backgroundColor: "rgb(60,186,159,0.1)"
-                },
-                {
-                    data: [1123, 1109, 1008, 1208, 1423, 1114, 1036],
-                    label: "Media Casos Confirmados",
-                    borderColor: "rgb(60,186,159)",
-                    backgroundColor: "rgb(60,186,159,0.1)"
-                },*/
-                {
-                    data: mortesDiariasArray,
-                    label: "Numero de Obitos",
+                         {
+                    data: totalArray,
+                    label: option == "Deaths"?  "Número de Mortes" : option == "Confirmed" ? "Total de Confirmados" : "Total de Recuperados",
                     borderColor: "rgb(255,140,13)",
                     backgroundColor: "rgb(255,140,13,0.1)"
                 },
                 {
-                    data: mediaDiariasArray,
-                    label: "Media de Obitos",
+                    data: averageArray,
+                    label: option == "Deaths"?  "Média de Mortes" : option == "Confirmed" ? "Média de Confirmados" : "Média de Recuperados",
                     borderColor: "rgb(60,186,159)",
                     backgroundColor: "rgb(60,186,159,0.1)"
                 }
@@ -145,8 +140,7 @@ function getGraficoLinhas(data, totalDias, deaths, mediaDiariasArray, mortesDiar
             plugins: {
                 legend: {
                     display: true,
-                    position: 'top', //top, bottom, left, right
-    
+                    position: 'top', 
                 },
                 title: {
                     display: true,
@@ -162,6 +156,5 @@ function getGraficoLinhas(data, totalDias, deaths, mediaDiariasArray, mortesDiar
                 }
             }
         }
-    })
+    });
 }
-getGraficoLinhas()

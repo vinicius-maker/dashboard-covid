@@ -1,8 +1,6 @@
-fetch("https://api.covid19api.com/summary")
-.then((resp) => {
-    return resp.json();
-})
-.then(function(data){
+import { getSummaryRoute, numberWithCommas } from '../services/functions.js'
+
+await getSummaryRoute().then(function(data){
     let totalConfirmed = data.Global.TotalConfirmed;
     let totalDeaths = data.Global.TotalDeaths;
     let totalRecover = data.Global.TotalRecovered;
@@ -14,21 +12,20 @@ fetch("https://api.covid19api.com/summary")
         minutes:  new Date().getMinutes(),
     }
 
-    document.getElementById("confirmed").innerHTML = totalConfirmed;
-    document.getElementById("death").innerHTML = totalDeaths;
-    document.getElementById("recovered").innerHTML = totalRecover;
+    document.getElementById("confirmed").innerHTML = numberWithCommas(totalConfirmed);
+    document.getElementById("death").innerHTML = numberWithCommas(totalDeaths);
+    document.getElementById("recovered").innerHTML = numberWithCommas(totalRecover);
     document.getElementById("date").innerHTML = "Data de atualização: " 
         + update_Date.day.toString().padStart(2, '0') + '.' 
             + update_Date.month.toString().padStart(2, '0') + '.' 
-                + update_Date.year + ' '
+                + update_Date.year.toFixed().split(0)[1] + ' '
                     + update_Date.hours.toString().padStart(2, '0') + ':'
                         + update_Date.minutes.toString().padStart(2, '0');
 
     getTopCoutries(data)
-    getGraficoPizza(data)
-    getGraficoBarra(data)                        
+    getChartPizza(data)
+    getChartBarra(data)                        
 })
-
 
 function getTopCoutries(data){
     let paises = data.Countries.sort((a, b) => parseInt(b.TotalDeaths ? b.TotalDeaths : 0) - parseInt(a.TotalDeaths ? a.TotalDeaths : 0));    let values = {countries:[], total:[], colors:[] }
@@ -39,7 +36,7 @@ function getTopCoutries(data){
     return values;
 }
 
-function getGraficoPizza(data) {
+function getChartPizza(data) {
     new Chart(document.getElementById("pizza"),{
         type: 'pie',
         data: {
@@ -65,20 +62,19 @@ function getGraficoPizza(data) {
     })
 }
 
-function getGraficoBarra(data) {
-
-    let paisesMaisMortes = getTopCoutries(data)
-    let paises = paisesMaisMortes.countries;
-    let totalMortes = paisesMaisMortes.total;
+function getChartBarra(data) {
+    let countriesMoreDeaths = getTopCoutries(data)
+    let countries = countriesMoreDeaths.countries;
+    let totalDeaths = countriesMoreDeaths.total;
 
     new Chart(document.getElementById("barras"), {
         type: 'bar',
         data: {
-            labels: paises,
+            labels: countries,
             datasets:[
                 {
                     label: "Países",
-                    data: totalMortes,
+                    data: totalDeaths,
                     backgroundColor: '#8a2be2'
                 }
             ]
@@ -97,14 +93,3 @@ function getGraficoBarra(data) {
         }
     })  
 }
-
-function addListeners(){
-    document.querySelectorAll('.app-menu').forEach(item =>{
-        item.addEventListener('click', function(event){
-            Array.from(document.querySelectorAll('.nav-item.active')).forEach((el) => el.classList.remove('active'));
-            this.parentElement.classList.add('active');
-            covid[event.target.dataset.modulo].start();       
-        });
-    });
-}
-
