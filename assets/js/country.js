@@ -1,3 +1,5 @@
+let chart = null;
+
 fetch("https://api.covid19api.com/countries")
     .then((resp) => {
         return resp.json();
@@ -24,40 +26,24 @@ function getCountries(arrayCountries) {
     return select.join("");
 }
 
+function getArrayOfAvg(arrToAvg, totalDays) {
 
-function getDeathsAvg(arrDeaths, totalDays) {
+    let totalDaylies = 0;
+    let arrTotalDaylies = [];
 
-    let totalDayliesDeaths = 0;
-    let arrTotalDayliesDeaths = [];
-
-    arrDeaths.forEach((value)=>{
-        totalDayliesDeaths += value;
+    arrToAvg.forEach((value)=>{
+        totalDaylies += value;
     })
 
-    for (let i = 0 ; i < arrDeaths.length; i++) {
-        arrTotalDayliesDeaths.push(totalDayliesDeaths / totalDays )
+    for (let i = 0 ; i < arrToAvg.length; i++) {
+        arrTotalDaylies.push(totalDaylies / totalDays )
     }
 
-    return arrTotalDayliesDeaths;
+    return arrTotalDaylies;
     
 
 }
 
-function getConfirmedsAvg(arrConfirmeds, totalDays) {
-
-    let totalDayliesConfirmeds = 0;
-    let arrTotalDayliesConfirmeds= [];
-
-    arrConfirmeds.forEach((value)=>{
-        totalDayliesConfirmeds += value;
-    })
-
-    for (let i = 0 ; i < arrConfirmeds.length; i++) {
-        arrTotalDayliesConfirmeds.push(totalDayliesConfirmeds / totalDays )
-    }
-    return arrTotalDayliesConfirmeds;    
-
-}
 
 function getFilter() {
     let button = document.getElementById("filtro");
@@ -85,29 +71,28 @@ function getFilter() {
                 let totalDeaths = 0;
                 let recovered = 0;
                 let confirmed = 0;
-                let avgDailyDeathArray = [];
+                let avgDailyArray = [];
                 let deathDailyArray = [];
                 let confirmedDailyArray = [];
-                let avgDailyConfirmedArray = [];
+                let recoveredDailyArray = [];
 
                 console.log("Tamanho do retorno " + data.data.length)
 
                     console.log("slice " + JSON.stringify(data.data.slice(-1)));
                         totalDeaths += data.data.slice(-1)[0].Deaths;
                         recovered += data.data.slice(-1)[0].Recovered;
-                        confirmed += data.data.slice(-1)[0].Confirmed;
-                
+                        confirmed += data.data.slice(-1)[0].Confirmed;            
 
                 data.data.forEach(function (valor, index, arr) {
                     if (index > 0) {
                         deathDailyArray.push(valor.Deaths - arr[index - 1].Deaths);
                         confirmedDailyArray.push(valor.Confirmed - arr[index - 1].Confirmed);
-
+                        recoveredDailyArray.push(valor.Recovered - arr[index - 1].Recovered);
                    }
                 })
                 //Recuperação da média de mortes
 
-                console.log("TOTAL DE MORTES", totalDeaths);
+                console.log("Array de Total de confirmados", confirmedDailyArray);
 
                 let totalConfirmados = document.getElementById("kpiconfirmed");
                 let totalMortes = document.getElementById("kpideaths");
@@ -116,10 +101,22 @@ function getFilter() {
                 totalMortes.innerHTML = totalDeaths;
                 totalRecuperados.innerHTML = recovered;
 
-                avgDailyDeathArray = getDeathsAvg(deathDailyArray, totalDays);
-                avgDailyConfirmedArray = getConfirmedsAvg(confirmedDailyArray, totalDays);
+                
+                let option = document.getElementById("cmbData");
+                
+                if(option.value == "Deaths") {
+                    avgDailyArray = getArrayOfAvg(deathDailyArray, totalDays);
+                    getGraficoLinhas("Deaths",data.data, totalDeaths, avgDailyArray, deathDailyArray);
+                } else if ( option.value == "Confirmed") {
+                    avgDailyArray = getArrayOfAvg(confirmedDailyArray, totalDays);
+                    getGraficoLinhas("Confirmed",data.data, totalDeaths, avgDailyArray, confirmedDailyArray);
+                }
+                else if ( option.value == "Recovered") {
+                    avgDailyArray = getArrayOfAvg(recoveredDailyArray, totalDays);
+                    getGraficoLinhas("Recovered",data.data, totalDeaths, avgDailyArray, recoveredDailyArray);
 
-                getGraficoLinhas(data.data, totalDays, totalDeaths, avgDailyDeathArray, deathDailyArray, confirmedDailyArray, avgDailyConfirmedArray);
+                }
+
 
             })
     })
@@ -127,48 +124,33 @@ function getFilter() {
 }
 getFilter();
 
-function getGraficoLinhas(data, totalDays, totalDeaths, avgDailyDeathArray, getDeathDailyArray) {
+function getGraficoLinhas(option, data, totalDeaths, averageArray, totalArray) {
     let dataLabels = []
-    let totalMortes = [];
-    let mediaDiaria = [];
-
-    console.log(getDeathDailyArray);
 
     data.forEach((valor) => {
-        console.log(valor);
-        dataLabels.push(valor.Date.replace('T00:00:00Z',''));
-        totalMortes.push(totalDeaths)
-        mediaDiaria.push(avgDailyDeathArray)
+        dataLabels.push(valor.Date.replace('T00:00:00Z',''));  
     });
 
     dataLabels = dataLabels.slice(1, dataLabels.length )
 
-    new Chart(document.getElementById("linhas"), {
+        if(chart) {
+            chart.destroy();
+        }
+
+        chart = new Chart(document.getElementById("linhas"), {
         type: 'line',
         data: {
             labels: dataLabels,
             datasets: [
-                /*{
-                    data: [1123, 1109, 1008, 1208, 1423, 1114, 1036],
-                    label: "Casos Confirmados",
-                    borderColor: "rgb(60,186,159)",
-                    backgroundColor: "rgb(60,186,159,0.1)"
-                },
-                {
-                    data: [1123, 1109, 1008, 1208, 1423, 1114, 1036],
-                    label: "Media Casos Confirmados",
-                    borderColor: "rgb(60,186,159)",
-                    backgroundColor: "rgb(60,186,159,0.1)"
-                },*/
-                {
-                    data: getDeathDailyArray,
-                    label: "Numero de Obitos",
+                         {
+                    data: totalArray,
+                    label: option == "Deaths"?  "Numero de mortes" : option == "Confirmed" ? "Total Confirmados" : "Total de recuperados",
                     borderColor: "rgb(255,140,13)",
                     backgroundColor: "rgb(255,140,13,0.1)"
                 },
                 {
-                    data: avgDailyDeathArray,
-                    label: "Media de Obitos",
+                    data: averageArray,
+                    label: option == "Deaths"?  "Média Mortes" : option == "Confirmed" ? "Média Confirmados" : "Média de recuperados",
                     borderColor: "rgb(60,186,159)",
                     backgroundColor: "rgb(60,186,159,0.1)"
                 }
@@ -197,4 +179,5 @@ function getGraficoLinhas(data, totalDays, totalDeaths, avgDailyDeathArray, getD
             }
         }
     })
+   
 }
