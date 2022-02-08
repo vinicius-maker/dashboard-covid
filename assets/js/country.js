@@ -25,16 +25,23 @@ function getCountries(arrayCountries) {
 }
 
 
-// function addListeners(){
+function getDeathsAvg(arrDeaths, totalDays) {
 
-// let item = document.getElementById('filtro')
-//     item.addEventListener('click', function(event){
-//         Array.from(document.getElementById('filtro')).forEach((el) => el.classList.remove('active'));
-//         this.parentElement.classList.add('active');
-//         covid[event.target.dataset.modulo].start();       
-//     });
-// }
-// //addListeners();
+    let totalDayliesDeaths = 0;
+    let arrTotalDayliesDeaths = [];
+
+    arrDeaths.forEach((value)=>{
+        totalDayliesDeaths += value;
+    })
+
+    for (let i = 0 ; i < arrDeaths.length; i++) {
+        arrTotalDayliesDeaths.push(totalDayliesDeaths / totalDays )
+    }
+
+    return arrTotalDayliesDeaths;
+    
+
+}
 
 function getFilter() {
     let button = document.getElementById("filtro");
@@ -56,70 +63,32 @@ function getFilter() {
         dateTo = dateTo.toISOString().split('T')[0];
 
 
-        console.log("TESTE DE DATA ", dateFrom);
-
 
         axios.get(`https://api.covid19api.com/country/${country}?from=${dateFrom}T00:00:00Z&to=${dateTo}T00:00:00Z`)
             .then(function (data) {
-
-                console.log(data);
-
                 let totalDeaths = 0;
                 let recovered = 0;
                 let confirmed = 0;
-                let mortesDiarias = 0;
-                let mediaMortesDiarias = 0;
-                let mortesDiariasArray = [];
-                let mediaDiariasArray = [];
-
                 let meanTotalDeaths = 0;
-
                 let avgDailyDeathArray = [];
+                let deathDailyArray = [];
 
-                let getDeathDailyArray = [];
+                console.log("Tamanho do retorno " + data.data.length)
 
-                let totalDaily = 0;
-
-                data.data.forEach((valor, index) => {
-                    // if (index == 0) {
-                    //     mortesDiarias = valor.Deaths;
-                    // } else {
-                    //     mortesDiarias += valor.Deaths - data.data[index - 1].Deaths;
-                    //     mediaMortesDiarias = mortesDiarias / index;
-                    //     mortesDiariasArray.push(mortesDiarias);
-                    //     mediaDiariasArray.push(mediaMortesDiarias);
-                    // }
-
-                    // console.log("mortes diarias: " + mortesDiarias);
-                    // console.log("medias: " + mediaMortesDiarias);      
-
-                    // totalDeaths += valor.Deaths;
-                    recovered += valor.Recovered;
-                    confirmed += valor.Confirmed;
-                });
+                    console.log("slice " + JSON.stringify(data.data.slice(-1)));
+                        totalDeaths += data.data.slice(-1)[0].Deaths;
+                        recovered += data.data.slice(-1)[0].Recovered;
+                        confirmed += data.data.slice(-1)[0].Confirmed;
+                
 
                 data.data.forEach(function (valor, index, arr) {
                     if (index > 0) {
-                        getDeathDailyArray.push(valor.Deaths - arr[index - 1].Deaths);
-                        console.log("cheguei no if, valor", getDeathDailyArray);
-
-                        //valores exatos de quantidade de mortes por dia
-                        totalDeaths = getDeathDailyArray;
-
-                        // getDeathDailyArray.push(valor.Deaths - arr[index - 1].Deaths);
-                        // console.log("cheguei no if, valor", getDeathDailyArray);
-                        
-                        // média de valores diários
-                        meanTotalDeaths += getDeathDailyArray;
-                        
-                        console.log("mortes totais", meanTotalDeaths);
-
-                        avgDailyDeathArray.push(meanTotalDeaths / totalDays);
-                    }
+                        deathDailyArray.push(valor.Deaths - arr[index - 1].Deaths);
+                   }
                 })
                 //Recuperação da média de mortes
 
-                console.log("média corrigido", avgDailyDeathArray);
+                console.log("TOTAL DE MORTES", totalDeaths);
 
                 let totalConfirmados = document.getElementById("kpiconfirmed");
                 let totalMortes = document.getElementById("kpideaths");
@@ -128,7 +97,9 @@ function getFilter() {
                 totalMortes.innerHTML = totalDeaths;
                 totalRecuperados.innerHTML = recovered;
 
-                getGraficoLinhas(data.data, totalDays, totalDeaths, avgDailyDeathArray, getDeathDailyArray);
+                avgDailyDeathArray = getDeathsAvg(deathDailyArray, totalDays);
+
+                getGraficoLinhas(data.data, totalDays, totalDeaths, avgDailyDeathArray, deathDailyArray);
 
             })
     })
@@ -149,8 +120,6 @@ function getGraficoLinhas(data, totalDays, totalDeaths, avgDailyDeathArray, getD
         totalMortes.push(totalDeaths)
         mediaDiaria.push(avgDailyDeathArray)
     });
-
-    console.log("media aqui", getDeathDailyArray);
 
     new Chart(document.getElementById("linhas"), {
         type: 'line',
