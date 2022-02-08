@@ -22,9 +22,9 @@ await getSummaryRoute().then(function(data){
                     + update_Date.hours.toString().padStart(2, '0') + ':'
                         + update_Date.minutes.toString().padStart(2, '0');
 
-    getTopCoutries(data)
-    getChartPizza(data)
-    getChartBarra(data)                        
+    getTopCoutries(data);
+    getChartPizza(data);
+    getChartBarra(data);                        
 })
 
 function getTopCoutries(data){
@@ -59,11 +59,11 @@ function getChartPizza(data) {
                 }
             }
         }
-    })
+    });
 }
 
 function getChartBarra(data) {
-    let countriesMoreDeaths = getTopCoutries(data)
+    let countriesMoreDeaths = getTopCoutries(data);
     let countries = countriesMoreDeaths.countries;
     let totalDeaths = countriesMoreDeaths.total;
 
@@ -91,5 +91,5 @@ function getChartBarra(data) {
                 }
             }
         }
-    })  
+    });  
 }
